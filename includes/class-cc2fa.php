@@ -46,7 +46,7 @@ class CC2FA
         });
         add_action('template_redirect', function () {
             if (get_query_var('cc_2fa_form')) {
-                include plugin_dir_path(__FILE__) . '../templates/form-page.php';
+                include plugin_dir_path(__FILE__) . '../templates/verification-page.php';
                 exit;
             }
         });

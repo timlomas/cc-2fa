@@ -12,6 +12,9 @@ class CC2FA_Auth
         add_action('login_redirect', array(__CLASS__, 'redirect_after_login'), 10, 3);
         add_action('wp_logout', array(__CLASS__, 'clear_session'));
         add_action('admin_init', array(__CLASS__, 'prevent_dashboard_access'));
+
+        // Add the custom form submission handler
+        add_action('template_redirect', array(__CLASS__, 'handle_form_submission'));
     }
 
     public static function redirect_after_login($redirect_to, $request, $user)
@@ -57,10 +60,29 @@ class CC2FA_Auth
         return false;
     }
 
-    private static function send_verification_code($user)
+    public static function send_verification_code($user)
     {
         $code = CC2FA_Utils::generate_verification_code();
         set_transient('cc_2fa_code_' . $user->ID, $code, 60 * 10);
         CC2FA_Utils::send_verification_email($user->user_email, $code);
+    }
+
+    public static function handle_form_submission()
+    {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cc_2fa_code'])) {
+            check_admin_referer('cc_2fa_form_nonce', 'cc_2fa_form_nonce_field');
+
+            if (self::validate_form_submission($_POST['cc_2fa_code'])) {
+                wp_redirect(admin_url());
+                exit;
+            } else {
+                // Store the error message in a transient or session
+                set_transient('cc_2fa_error', __('Incorrect code. Please try again.', 'cc-2fa'), 30);
+
+                // Redirect back to the form page
+                wp_redirect(site_url('/cc-2fa-form'));
+                exit;
+            }
+        }
     }
 }
