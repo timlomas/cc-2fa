@@ -30,6 +30,8 @@ class CC2FA_Settings
         register_setting('cc_2fa_settings', 'cc_2fa_code_length');
         register_setting('cc_2fa_settings', 'cc_2fa_code_complexity');
         register_setting('cc_2fa_settings', 'cc_2fa_code_expiration');
+        register_setting('cc_2fa_settings', 'cc_2fa_limit_attempts');
+        register_setting('cc_2fa_settings', 'cc_2fa_attempts_allowed');
 
         // Add settings section
         add_settings_section(
@@ -60,6 +62,22 @@ class CC2FA_Settings
             'cc_2fa_code_expiration',
             __('Code Expiration Time', 'cc-2fa'),
             array(__CLASS__, 'render_expiration_time_slider'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
+
+        add_settings_field(
+            'cc_2fa_limit_attempts',
+            __('Limit Verification Attempts', 'cc-2fa'),
+            array(__CLASS__, 'render_limit_attempts_checkbox'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
+
+        add_settings_field(
+            'cc_2fa_attempts_allowed',
+            __('Verification Attempts Allowed', 'cc-2fa'),
+            array(__CLASS__, 'render_attempts_allowed_slider'),
             'cc-2fa-settings',
             'cc_2fa_main_settings'
         );
@@ -121,6 +139,47 @@ class CC2FA_Settings
                 document.getElementById('cc_2fa_code_expiration_value').textContent = this.value + ' <?php esc_html_e('seconds', 'cc-2fa'); ?>';
             });
         </script>
+    <?php
+    }
+
+    public static function render_limit_attempts_checkbox()
+    {
+        $limit_attempts = get_option('cc_2fa_limit_attempts', 0);
+    ?>
+        <label>
+            <input type="checkbox" id="cc_2fa_limit_attempts" name="cc_2fa_limit_attempts" value="1" <?php checked($limit_attempts, 1); ?>>
+            <?php esc_html_e('Limit verification attempts', 'cc-2fa'); ?>
+        </label>
+        <script type="text/javascript">
+            document.getElementById('cc_2fa_limit_attempts').addEventListener('change', function() {
+                const attemptsSlider = document.getElementById('cc_2fa_attempts_allowed_container');
+                attemptsSlider.style.display = this.checked ? 'block' : 'none';
+            });
+
+            // Initially hide/show the slider based on the checkbox state
+            document.addEventListener('DOMContentLoaded', function() {
+                const attemptsSlider = document.getElementById('cc_2fa_attempts_allowed_container');
+                const checkbox = document.getElementById('cc_2fa_limit_attempts');
+                attemptsSlider.style.display = checkbox.checked ? 'block' : 'none';
+            });
+        </script>
+    <?php
+    }
+
+    public static function render_attempts_allowed_slider()
+    {
+        $attempts_allowed = get_option('cc_2fa_attempts_allowed', 4);
+    ?>
+        <div id="cc_2fa_attempts_allowed_container" style="margin-top: 10px;">
+            <label for="cc_2fa_attempts_allowed"><?php esc_html_e('Verification Attempts Allowed', 'cc-2fa'); ?></label>
+            <input type="range" id="cc_2fa_attempts_allowed" name="cc_2fa_attempts_allowed" min="1" max="20" value="<?php echo esc_attr($attempts_allowed); ?>">
+            <span id="cc_2fa_attempts_allowed_value"><?php echo esc_html($attempts_allowed); ?></span>
+            <script type="text/javascript">
+                document.getElementById('cc_2fa_attempts_allowed').addEventListener('input', function() {
+                    document.getElementById('cc_2fa_attempts_allowed_value').textContent = this.value;
+                });
+            </script>
+        </div>
 <?php
     }
 }

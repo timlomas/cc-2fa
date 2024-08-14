@@ -56,11 +56,36 @@ class CC2FA_Auth
         delete_transient('cc_2fa_passed_' . $user_id);
         delete_transient('cc_2fa_code_' . $user_id);
         delete_option('cc_2fa_code_' . $user_id . '_timestamp');
+        delete_transient('cc_2fa_attempts_' . $user_id);
     }
 
     public static function validate_form_submission($input_code)
     {
-        $stored_code = get_transient('cc_2fa_code_' . get_current_user_id());
+        $user_id = get_current_user_id();
+        $stored_code = get_transient('cc_2fa_code_' . $user_id);
+
+        // Check if the limit attempts option is enabled
+        $limit_attempts = get_option('cc_2fa_limit_attempts', 0);
+        if ($limit_attempts) {
+            $attempts_allowed = get_option('cc_2fa_attempts_allowed', 4);
+            $attempts = get_transient('cc_2fa_attempts_' . $user_id);
+            $attempts = $attempts ? $attempts + 1 : 1;
+
+            if ($stored_code !== $input_code) {
+                // Increment the number of attempts only if the code is incorrect
+                set_transient('cc_2fa_attempts_' . $user_id, $attempts, get_option('cc_2fa_code_expiration', 120));
+
+                // If the number of attempts equals the allowed attempts, log out and redirect
+                if ($attempts >= $attempts_allowed) {
+                    wp_logout();
+                    wp_redirect(wp_login_url() . '?message=too_many_attempts');
+                    exit;
+                }
+
+                self::handle_incorrect_code();
+                return false;
+            }
+        }
 
         if (!$stored_code) {
             self::handle_expired_code();
@@ -68,7 +93,7 @@ class CC2FA_Auth
         }
 
         if ($stored_code === $input_code) {
-            set_transient('cc_2fa_passed_' . get_current_user_id(), true, 60 * 10);
+            set_transient('cc_2fa_passed_' . $user_id, true, 60 * 10);
             return true;
         }
 
@@ -143,7 +168,7 @@ class CC2FA_Auth
             $code = CC2FA_Utils::generate_verification_code($code_length, $code_complexity);
         }
 
-        // Reset the expiration time for the existing code
+        // Set or reset the code with a fresh expiration time
         set_transient('cc_2fa_code_' . $user_id, $code, $expiration_time);
         update_option('cc_2fa_code_' . $user_id . '_timestamp', time());
 
