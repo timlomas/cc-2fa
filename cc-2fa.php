@@ -3,7 +3,7 @@
 /**
  * Plugin Name: CC 2FA
  * Description: A plugin that requires users to enter a verification code sent via email before accessing the WordPress dashboard.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Caterham Computing
  * Author URI: https://caterhamcomputing.co.uk/
  * Text Domain: cc-2fa
@@ -47,6 +47,93 @@ function cc_2fa_template_redirect()
     }
 }
 add_action('template_redirect', 'cc_2fa_template_redirect');
+
+function cc_2fa_add_settings_page()
+{
+    add_options_page(
+        __('CC 2FA Settings', 'cc-2fa'),
+        __('CC 2FA', 'cc-2fa'),
+        'manage_options',
+        'cc-2fa-settings',
+        'cc_2fa_render_settings_page'
+    );
+}
+add_action('admin_menu', 'cc_2fa_add_settings_page');
+
+function cc_2fa_render_settings_page()
+{
+?>
+    <div class="wrap">
+        <h1><?php esc_html_e('CC 2FA Settings', 'cc-2fa'); ?></h1>
+        <form method="post" action="options.php">
+            <?php
+            settings_fields('cc_2fa_settings_group');
+            do_settings_sections('cc-2fa-settings');
+            submit_button();
+            ?>
+        </form>
+    </div>
+<?php
+}
+
+function cc_2fa_register_settings()
+{
+    register_setting('cc_2fa_settings_group', 'cc_2fa_code_length', [
+        'type' => 'integer',
+        'description' => __('The length of the verification code', 'cc-2fa'),
+        'default' => 6,
+        'sanitize_callback' => 'absint',
+    ]);
+
+    register_setting('cc_2fa_settings_group', 'cc_2fa_code_complexity', [
+        'type' => 'string',
+        'description' => __('The complexity of the verification code', 'cc-2fa'),
+        'default' => 'numeric',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+
+    add_settings_section(
+        'cc_2fa_settings_section',
+        __('Verification Code Settings', 'cc-2fa'),
+        '__return_false',
+        'cc-2fa-settings'
+    );
+
+    add_settings_field(
+        'cc_2fa_code_length',
+        __('Verification Code Length', 'cc-2fa'),
+        'cc_2fa_code_length_field_callback',
+        'cc-2fa-settings',
+        'cc_2fa_settings_section'
+    );
+
+    add_settings_field(
+        'cc_2fa_code_complexity',
+        __('Verification Code Complexity', 'cc-2fa'),
+        'cc_2fa_code_complexity_field_callback',
+        'cc-2fa-settings',
+        'cc_2fa_settings_section'
+    );
+}
+add_action('admin_init', 'cc_2fa_register_settings');
+
+function cc_2fa_code_length_field_callback()
+{
+    $length = get_option('cc_2fa_code_length', 6);
+?>
+    <input type="range" id="cc_2fa_code_length" name="cc_2fa_code_length" min="4" max="12" value="<?php echo esc_attr($length); ?>" oninput="this.nextElementSibling.value = this.value">
+    <output><?php echo esc_attr($length); ?></output>
+<?php
+}
+
+function cc_2fa_code_complexity_field_callback()
+{
+    $complexity = get_option('cc_2fa_code_complexity', 'numeric');
+?>
+    <label><input type="radio" name="cc_2fa_code_complexity" value="numeric" <?php checked($complexity, 'numeric'); ?>> <?php _e('Numeric', 'cc-2fa'); ?></label><br>
+    <label><input type="radio" name="cc_2fa_code_complexity" value="alphanumeric" <?php checked($complexity, 'alphanumeric'); ?>> <?php _e('Alphanumeric', 'cc-2fa'); ?></label>
+<?php
+}
 
 function cc_2fa_activate()
 {

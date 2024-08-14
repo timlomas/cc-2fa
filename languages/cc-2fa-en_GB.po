@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: CC 2FA\n"
-"POT-Creation-Date: 2024-08-14 13:24+0100\n"
-"PO-Revision-Date: 2024-08-14 13:25+0100\n"
+"POT-Creation-Date: 2024-08-14 13:48+0100\n"
+"PO-Revision-Date: 2024-08-14 13:49+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: en_GB\n"
@@ -20,11 +20,48 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.min.js\n"
 
-#: includes/class-cc-2fa.php:77
+#: cc-2fa.php:54 cc-2fa.php:67
+msgid "CC 2FA Settings"
+msgstr "CC 2FA Settings"
+
+#. Plugin Name of the plugin/theme
+#: cc-2fa.php:55
+msgid "CC 2FA"
+msgstr "CC 2FA"
+
+#: cc-2fa.php:83
+msgid "The length of the verification code"
+msgstr "The length of the verification code"
+
+#: cc-2fa.php:90
+msgid "The complexity of the verification code"
+msgstr ""
+
+#: cc-2fa.php:97
+msgid "Verification Code Settings"
+msgstr "Verification Code Settings"
+
+#: cc-2fa.php:104
+msgid "Verification Code Length"
+msgstr "Verification Code Length"
+
+#: cc-2fa.php:112
+msgid "Verification Code Complexity"
+msgstr "Verification Code Complexity"
+
+#: cc-2fa.php:133
+msgid "Numeric"
+msgstr "Numeric"
+
+#: cc-2fa.php:134
+msgid "Alphanumeric"
+msgstr "Alphanumeric"
+
+#: includes/class-cc-2fa.php:91
 msgid "Your Verification Code"
 msgstr "Your Verification Code"
 
-#: includes/class-cc-2fa.php:78
+#: includes/class-cc-2fa.php:92
 #, php-format
 msgid "Your verification code is: %s"
 msgstr "Your verification code is: %s"
@@ -48,10 +85,6 @@ msgstr "Verification Code:"
 #: templates/form-page.php:124
 msgid "Submit"
 msgstr "Submit"
-
-#. Plugin Name of the plugin/theme
-msgid "CC 2FA"
-msgstr "CC 2FA"
 
 #. Description of the plugin/theme
 msgid ""

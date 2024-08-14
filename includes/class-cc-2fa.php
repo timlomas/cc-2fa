@@ -64,7 +64,21 @@ class CC2FA
 
     private function generate_verification_code()
     {
-        return wp_rand(100000, 999999);  // Generate a random 6-digit code
+        $length = get_option('cc_2fa_code_length', 6);
+        $complexity = get_option('cc_2fa_code_complexity', 'numeric');
+
+        if ($complexity === 'alphanumeric') {
+            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        } else {
+            $characters = '0123456789';
+        }
+
+        $code = '';
+        for ($i = 0; $i < $length; $i++) {
+            $code .= $characters[wp_rand(0, strlen($characters) - 1)];
+        }
+
+        return $code;
     }
 
     private function send_verification_code($user)
