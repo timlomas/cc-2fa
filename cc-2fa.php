@@ -2,32 +2,61 @@
 
 /**
  * Plugin Name: CC 2FA
- * Plugin URI: https://caterhamcomputing.co.uk/
- * Description: A plugin to add two-factor authentication via email for WordPress logins.
- * Version: 1.0.0
+ * Description: A plugin that requires users to enter a verification code sent via email before accessing the WordPress dashboard.
+ * Version: 1.0.1
  * Author: Caterham Computing
  * Author URI: https://caterhamcomputing.co.uk/
  * Text Domain: cc-2fa
  * Domain Path: /languages
  */
 
-defined('ABSPATH') || exit; // Prevent direct access to the file.
+defined('ABSPATH') || exit;
 
-if (! defined('CC2FA_PLUGIN_DIR')) {
-    define('CC2FA_PLUGIN_DIR', plugin_dir_path(__FILE__));
-}
+require_once plugin_dir_path(__FILE__) . 'includes/class-cc-2fa.php';
 
-if (! defined('CC2FA_PLUGIN_URL')) {
-    define('CC2FA_PLUGIN_URL', plugin_dir_url(__FILE__));
-}
-
-require_once CC2FA_PLUGIN_DIR . 'includes/class-cc2fa.php';
-
-use CC2FA\CC2FA;
-
-function cc2fa_run_plugin()
+function cc_2fa_init()
 {
-    $plugin = new CC2FA();
-    $plugin->run();
+    \CaterhamComputing\CC2FA\CC2FA::instance();
 }
-add_action('plugins_loaded', 'cc2fa_run_plugin');
+add_action('plugins_loaded', 'cc_2fa_init');
+
+function cc_2fa_load_textdomain()
+{
+    load_plugin_textdomain('cc-2fa', false, basename(dirname(__FILE__)) . '/languages');
+}
+add_action('init', 'cc_2fa_load_textdomain');
+
+function cc_2fa_rewrite_rules()
+{
+    add_rewrite_rule('cc-2fa-form/?$', 'index.php?cc_2fa_form=1', 'top');
+}
+add_action('init', 'cc_2fa_rewrite_rules');
+
+function cc_2fa_query_vars($query_vars)
+{
+    $query_vars[] = 'cc_2fa_form';
+    return $query_vars;
+}
+add_filter('query_vars', 'cc_2fa_query_vars');
+
+function cc_2fa_template_redirect()
+{
+    if (get_query_var('cc_2fa_form')) {
+        include plugin_dir_path(__FILE__) . 'templates/form-page.php';
+        exit;
+    }
+}
+add_action('template_redirect', 'cc_2fa_template_redirect');
+
+function cc_2fa_activate()
+{
+    cc_2fa_rewrite_rules();
+    flush_rewrite_rules();
+}
+register_activation_hook(__FILE__, 'cc_2fa_activate');
+
+function cc_2fa_deactivate()
+{
+    flush_rewrite_rules();
+}
+register_deactivation_hook(__FILE__, 'cc_2fa_deactivate');
