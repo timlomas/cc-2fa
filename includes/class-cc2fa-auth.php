@@ -15,6 +15,10 @@ class CC2FA_Auth
 
         // Add the custom form submission handler
         add_action('template_redirect', array(__CLASS__, 'handle_form_submission'));
+
+        // Add AJAX handler for resending the code
+        add_action('wp_ajax_cc2fa_resend_code', array(__CLASS__, 'resend_code'));
+        add_action('wp_ajax_nopriv_cc2fa_resend_code', array(__CLASS__, 'resend_code'));
     }
 
     public static function redirect_after_login($redirect_to, $request, $user)
@@ -31,6 +35,11 @@ class CC2FA_Auth
 
     public static function prevent_dashboard_access()
     {
+        // Avoid redirecting AJAX requests
+        if (wp_doing_ajax()) {
+            return;
+        }
+
         if (!get_transient('cc_2fa_passed_' . get_current_user_id()) && !current_user_can('manage_options')) {
             wp_redirect(site_url('/cc-2fa-form'));
             exit;
@@ -79,10 +88,41 @@ class CC2FA_Auth
                 // Store the error message in a transient or session
                 set_transient('cc_2fa_error', __('Incorrect code. Please try again.', 'cc-2fa'), 30);
 
-                // Redirect back to the form page
+                // Redirect back to the verification page
                 wp_redirect(site_url('/cc-2fa-form'));
                 exit;
             }
         }
+    }
+
+    public static function resend_code()
+    {
+        // Ensure the user is logged in
+        if (!is_user_logged_in()) {
+            wp_send_json_error(__('User is not logged in', 'cc-2fa'));
+            wp_die();
+        }
+
+        $user_id = get_current_user_id();
+        $user = get_userdata($user_id);
+
+        if (!$user) {
+            wp_send_json_error(__('User not found', 'cc-2fa'));
+            wp_die();
+        }
+
+        // Retrieve the existing verification code or generate a new one
+        $code = get_transient('cc_2fa_code_' . $user_id);
+        if (!$code) {
+            $code = CC2FA_Utils::generate_verification_code();
+            set_transient('cc_2fa_code_' . $user_id, $code, 60 * 10);
+        }
+
+        // Resend the verification email
+        CC2FA_Utils::send_verification_email($user->user_email, $code);
+
+        wp_send_json_success(__('Verification code resent successfully', 'cc-2fa'));
+
+        wp_die();
     }
 }

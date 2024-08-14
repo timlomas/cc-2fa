@@ -14,7 +14,13 @@ show_admin_bar(false);
 
 // Enqueue styles and scripts
 wp_enqueue_style('cc2fa-style', plugin_dir_url(__FILE__) . '../assets/css/cc2fa-style.css');
-wp_enqueue_script('cc2fa-script', plugin_dir_url(__FILE__) . '../assets/js/cc2fa-script.js', array(), false, true);
+wp_enqueue_script('cc2fa-script', plugin_dir_url(__FILE__) . '../assets/js/cc2fa-script.js', array('jquery'), false, true);
+
+// Localize the AJAX URL and translation strings for use in JavaScript
+wp_localize_script('cc2fa-script', 'cc2fa_vars', array(
+    'ajaxurl' => admin_url('admin-ajax.php'),
+    'resend_code_text' => __('Resend code', 'cc-2fa'), // Add translation string
+));
 
 // Retrieve and delete the error message
 $error_message = get_transient('cc_2fa_error');
@@ -52,6 +58,7 @@ if ($error_message) {
                 <input type="submit" class="button button-primary" value="<?php esc_attr_e('Submit', 'cc-2fa'); ?>">
             </p>
         </form>
+        <p id="resend-container"></p> <!-- Placeholder for the resend link -->
     </div>
     <?php wp_footer(); ?>
 </body>
