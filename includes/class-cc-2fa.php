@@ -29,12 +29,10 @@ class CC2FA
     public function redirect_after_login($redirect_to, $request, $user)
     {
         if (is_wp_error($user)) {
-            error_log('redirect_after_login: WP_Error encountered: ' . $user->get_error_message() . ' | Request: ' . print_r($request, true));
             return $redirect_to;
         }
 
         if (!$user) {
-            error_log('redirect_after_login: Invalid user object encountered.');
             return $redirect_to;
         }
 
@@ -90,19 +88,16 @@ class CC2FA
     private function send_verification_code($user)
     {
         if (is_wp_error($user)) {
-            error_log('send_verification_code: WP_Error encountered: ' . $user->get_error_message());
             return;
         }
 
         if (empty($user->user_email)) {
-            error_log('send_verification_code: Invalid user object or missing email address.');
             return;
         }
 
         $code = $this->generate_verification_code();
 
         if (!set_transient('cc_2fa_code_' . $user->ID, $code, 60 * 10)) {
-            error_log('send_verification_code: Failed to set transient for user ID: ' . $user->ID);
             return;
         }
 
@@ -110,9 +105,7 @@ class CC2FA
         $message = sprintf(__('Your verification code is: %s', 'cc-2fa'), $code);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
-        if (!wp_mail($user->user_email, $subject, $message, $headers)) {
-            error_log('send_verification_code: Failed to send email to user ID: ' . $user->ID);
-        }
+        wp_mail($user->user_email, $subject, $message, $headers);
     }
 
     public function validate_form_submission($input_code)
