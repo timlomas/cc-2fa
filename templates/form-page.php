@@ -19,9 +19,7 @@ $user_id = get_current_user_id();
 if (isset($_POST['cc_2fa_code'])) {
     check_admin_referer('cc_2fa_form_nonce', 'cc_2fa_form_nonce_field');
 
-    $cc_2fa_instance = \CaterhamComputing\CC2FA\CC2FA::instance();
-    if ($cc_2fa_instance->validate_form_submission($_POST['cc_2fa_code'])) {
-        set_transient('cc_2fa_passed_' . $user_id, true, 60 * 10);
+    if (\CaterhamComputing\CC2FA\CC2FA_Auth::validate_form_submission($_POST['cc_2fa_code'])) {
         wp_redirect(admin_url());
         exit;
     } else {
