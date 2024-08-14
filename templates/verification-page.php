@@ -16,17 +16,20 @@ show_admin_bar(false);
 wp_enqueue_style('cc2fa-style', plugin_dir_url(__FILE__) . '../assets/css/cc2fa-style.css');
 wp_enqueue_script('cc2fa-script', plugin_dir_url(__FILE__) . '../assets/js/cc2fa-script.js', array('jquery'), false, true);
 
-// Localize the AJAX URL and translation strings for use in JavaScript
+// Localize the AJAX URL, expiration time, and other messages for use in JavaScript
+$expiration_time = get_option('cc_2fa_code_expiration', 120);
+$time_passed = time() - (int) get_option('cc_2fa_code_' . get_current_user_id() . '_timestamp');
+$time_left = max(0, $expiration_time - $time_passed);
+
 wp_localize_script('cc2fa-script', 'cc2fa_vars', array(
     'ajaxurl' => admin_url('admin-ajax.php'),
-    'resend_code_text' => __('Resend code', 'cc-2fa'), // Add translation string
+    'time_left' => $time_left, // Pass remaining time to JavaScript
+    'resend_code_text' => __('Resend code', 'cc-2fa'),
+    'send_new_code_text' => __('Send new code', 'cc-2fa'),
+    'code_expired_message' => __('Your verification code has expired.', 'cc-2fa'),
+    'resend_code_message' => __('Verification code resent successfully.', 'cc-2fa'),
+    'new_code_sent_message' => __('A new verification code has been sent.', 'cc-2fa'),
 ));
-
-// Retrieve and delete the error message
-$error_message = get_transient('cc_2fa_error');
-if ($error_message) {
-    delete_transient('cc_2fa_error');
-}
 ?>
 
 <!DOCTYPE html>
@@ -54,6 +57,7 @@ if ($error_message) {
                 <label for="cc_2fa_code"><?php esc_html_e('Verification Code:', 'cc-2fa'); ?></label>
                 <input type="text" id="cc_2fa_code" name="cc_2fa_code" required autofocus>
             </p>
+            <p id="countdown-timer"></p> <!-- Placeholder for countdown timer -->
             <p>
                 <input type="submit" class="button button-primary" value="<?php esc_attr_e('Submit', 'cc-2fa'); ?>">
             </p>

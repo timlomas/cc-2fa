@@ -55,25 +55,104 @@ class CC2FA_Auth
     {
         delete_transient('cc_2fa_passed_' . $user_id);
         delete_transient('cc_2fa_code_' . $user_id);
+        delete_option('cc_2fa_code_' . $user_id . '_timestamp');
     }
 
     public static function validate_form_submission($input_code)
     {
         $stored_code = get_transient('cc_2fa_code_' . get_current_user_id());
 
-        if ($stored_code && $stored_code === $input_code) {
+        if (!$stored_code) {
+            self::handle_expired_code();
+            return false;
+        }
+
+        if ($stored_code === $input_code) {
             set_transient('cc_2fa_passed_' . get_current_user_id(), true, 60 * 10);
             return true;
         }
 
+        self::handle_incorrect_code();
         return false;
+    }
+
+    private static function handle_expired_code()
+    {
+        add_action('template_redirect', function () {
+            wp_redirect(wp_login_url());
+            wp_logout();
+            exit;
+        });
+
+        add_action('wp_footer', function () {
+            echo '<script type="text/javascript">
+                setTimeout(function() {
+                    alert("' . esc_js(__('Your verification code has expired. You will be logged out and redirected to the login page.', 'cc-2fa')) . '");
+                    window.location.href = "' . esc_js(wp_login_url()) . '";
+                }, 2000); // 2 second delay before logout
+            </script>';
+        });
+    }
+
+    private static function handle_incorrect_code()
+    {
+        set_transient('cc_2fa_error', __('Incorrect code. Please try again.', 'cc-2fa'), 30);
+        wp_redirect(site_url('/cc-2fa-form'));
+        exit;
     }
 
     public static function send_verification_code($user)
     {
-        $code = CC2FA_Utils::generate_verification_code();
-        set_transient('cc_2fa_code_' . $user->ID, $code, 60 * 10);
+        $expiration_time = get_option('cc_2fa_code_expiration', 120); // Get expiration time in seconds
+        $code_length = get_option('cc_2fa_code_length', 6);
+        $code_complexity = get_option('cc_2fa_code_complexity', 'numeric');
+
+        $code = CC2FA_Utils::generate_verification_code($code_length, $code_complexity);
+        set_transient('cc_2fa_code_' . $user->ID, $code, $expiration_time); // Set expiration
+        update_option('cc_2fa_code_' . $user->ID . '_timestamp', time());
+
         CC2FA_Utils::send_verification_email($user->user_email, $code);
+    }
+
+    public static function resend_code()
+    {
+        // Ensure the user is logged in
+        if (!is_user_logged_in()) {
+            wp_send_json_error(__('User is not logged in', 'cc-2fa'));
+            wp_die();
+        }
+
+        $user_id = get_current_user_id();
+        $user = get_userdata($user_id);
+
+        if (!$user) {
+            wp_send_json_error(__('User not found', 'cc-2fa'));
+            wp_die();
+        }
+
+        // Retrieve the expiration time from settings
+        $expiration_time = get_option('cc_2fa_code_expiration', 120); // Get expiration time in seconds
+
+        // Retrieve the existing code, if any
+        $code = get_transient('cc_2fa_code_' . $user_id);
+
+        if (!$code) {
+            // If no code exists, generate a new one
+            $code_length = get_option('cc_2fa_code_length', 6);
+            $code_complexity = get_option('cc_2fa_code_complexity', 'numeric');
+            $code = CC2FA_Utils::generate_verification_code($code_length, $code_complexity);
+        }
+
+        // Reset the expiration time for the existing code
+        set_transient('cc_2fa_code_' . $user_id, $code, $expiration_time);
+        update_option('cc_2fa_code_' . $user_id . '_timestamp', time());
+
+        // Resend the verification email with the existing code
+        CC2FA_Utils::send_verification_email($user->user_email, $code);
+
+        wp_send_json_success(__('Verification code resent successfully', 'cc-2fa'));
+
+        wp_die();
     }
 
     public static function handle_form_submission()
@@ -93,36 +172,5 @@ class CC2FA_Auth
                 exit;
             }
         }
-    }
-
-    public static function resend_code()
-    {
-        // Ensure the user is logged in
-        if (!is_user_logged_in()) {
-            wp_send_json_error(__('User is not logged in', 'cc-2fa'));
-            wp_die();
-        }
-
-        $user_id = get_current_user_id();
-        $user = get_userdata($user_id);
-
-        if (!$user) {
-            wp_send_json_error(__('User not found', 'cc-2fa'));
-            wp_die();
-        }
-
-        // Retrieve the existing verification code or generate a new one
-        $code = get_transient('cc_2fa_code_' . $user_id);
-        if (!$code) {
-            $code = CC2FA_Utils::generate_verification_code();
-            set_transient('cc_2fa_code_' . $user_id, $code, 60 * 10);
-        }
-
-        // Resend the verification email
-        CC2FA_Utils::send_verification_email($user->user_email, $code);
-
-        wp_send_json_success(__('Verification code resent successfully', 'cc-2fa'));
-
-        wp_die();
     }
 }

@@ -24,6 +24,47 @@ class CC2FA_Settings
         );
     }
 
+    public static function register_settings()
+    {
+        // Register settings
+        register_setting('cc_2fa_settings', 'cc_2fa_code_length');
+        register_setting('cc_2fa_settings', 'cc_2fa_code_complexity');
+        register_setting('cc_2fa_settings', 'cc_2fa_code_expiration');
+
+        // Add settings section
+        add_settings_section(
+            'cc_2fa_main_settings',
+            __('Main Settings', 'cc-2fa'),
+            null,
+            'cc-2fa-settings'
+        );
+
+        // Add settings fields
+        add_settings_field(
+            'cc_2fa_code_length',
+            __('Verification Code Length', 'cc-2fa'),
+            array(__CLASS__, 'render_code_length_slider'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
+
+        add_settings_field(
+            'cc_2fa_code_complexity',
+            __('Verification Code Complexity', 'cc-2fa'),
+            array(__CLASS__, 'render_code_complexity_field'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
+
+        add_settings_field(
+            'cc_2fa_code_expiration',
+            __('Code Expiration Time', 'cc-2fa'),
+            array(__CLASS__, 'render_expiration_time_slider'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
+    }
+
     public static function render_settings_page()
     {
 ?>
@@ -31,7 +72,7 @@ class CC2FA_Settings
             <h1><?php esc_html_e('CC 2FA Settings', 'cc-2fa'); ?></h1>
             <form method="post" action="options.php">
                 <?php
-                settings_fields('cc_2fa_settings_group');
+                settings_fields('cc_2fa_settings');
                 do_settings_sections('cc-2fa-settings');
                 submit_button();
                 ?>
@@ -40,61 +81,46 @@ class CC2FA_Settings
     <?php
     }
 
-    public static function register_settings()
+    public static function render_code_length_slider()
     {
-        register_setting('cc_2fa_settings_group', 'cc_2fa_code_length', [
-            'type' => 'integer',
-            'description' => __('The length of the verification code', 'cc-2fa'),
-            'default' => 6,
-            'sanitize_callback' => 'absint',
-        ]);
-
-        register_setting('cc_2fa_settings_group', 'cc_2fa_code_complexity', [
-            'type' => 'string',
-            'description' => __('The complexity of the verification code', 'cc-2fa'),
-            'default' => 'numeric',
-            'sanitize_callback' => 'sanitize_text_field',
-        ]);
-
-        add_settings_section(
-            'cc_2fa_settings_section',
-            __('Verification Code Settings', 'cc-2fa'),
-            '__return_false',
-            'cc-2fa-settings'
-        );
-
-        add_settings_field(
-            'cc_2fa_code_length',
-            __('Verification Code Length', 'cc-2fa'),
-            array(__CLASS__, 'code_length_field_callback'),
-            'cc-2fa-settings',
-            'cc_2fa_settings_section'
-        );
-
-        add_settings_field(
-            'cc_2fa_code_complexity',
-            __('Verification Code Complexity', 'cc-2fa'),
-            array(__CLASS__, 'code_complexity_field_callback'),
-            'cc-2fa-settings',
-            'cc_2fa_settings_section'
-        );
-    }
-
-    public static function code_length_field_callback()
-    {
-        $length = get_option('cc_2fa_code_length', 6);
+        $code_length = get_option('cc_2fa_code_length', 6);
     ?>
-        <input type="range" id="cc_2fa_code_length" name="cc_2fa_code_length" min="4" max="12" value="<?php echo esc_attr($length); ?>" oninput="this.nextElementSibling.value = this.value">
-        <output><?php echo esc_attr($length); ?></output>
+        <input type="range" id="cc_2fa_code_length" name="cc_2fa_code_length" min="4" max="12" value="<?php echo esc_attr($code_length); ?>">
+        <span id="cc_2fa_code_length_value"><?php echo esc_html($code_length); ?></span>
+        <script type="text/javascript">
+            document.getElementById('cc_2fa_code_length').addEventListener('input', function() {
+                document.getElementById('cc_2fa_code_length_value').textContent = this.value;
+            });
+        </script>
     <?php
     }
 
-    public static function code_complexity_field_callback()
+    public static function render_code_complexity_field()
     {
-        $complexity = get_option('cc_2fa_code_complexity', 'numeric');
+        $code_complexity = get_option('cc_2fa_code_complexity', 'numeric');
     ?>
-        <label><input type="radio" name="cc_2fa_code_complexity" value="numeric" <?php checked($complexity, 'numeric'); ?>> <?php _e('Numeric', 'cc-2fa'); ?></label><br>
-        <label><input type="radio" name="cc_2fa_code_complexity" value="alphanumeric" <?php checked($complexity, 'alphanumeric'); ?>> <?php _e('Alphanumeric', 'cc-2fa'); ?></label>
+        <label>
+            <input type="radio" name="cc_2fa_code_complexity" value="numeric" <?php checked($code_complexity, 'numeric'); ?>>
+            <?php esc_html_e('Numeric', 'cc-2fa'); ?>
+        </label><br>
+        <label>
+            <input type="radio" name="cc_2fa_code_complexity" value="alphanumeric" <?php checked($code_complexity, 'alphanumeric'); ?>>
+            <?php esc_html_e('Alphanumeric', 'cc-2fa'); ?>
+        </label>
+    <?php
+    }
+
+    public static function render_expiration_time_slider()
+    {
+        $expiration_time = get_option('cc_2fa_code_expiration', 120);
+    ?>
+        <input type="range" id="cc_2fa_code_expiration" name="cc_2fa_code_expiration" min="30" max="600" step="30" value="<?php echo esc_attr($expiration_time); ?>">
+        <span id="cc_2fa_code_expiration_value"><?php echo esc_html($expiration_time); ?> <?php esc_html_e('seconds', 'cc-2fa'); ?></span>
+        <script type="text/javascript">
+            document.getElementById('cc_2fa_code_expiration').addEventListener('input', function() {
+                document.getElementById('cc_2fa_code_expiration_value').textContent = this.value + ' <?php esc_html_e('seconds', 'cc-2fa'); ?>';
+            });
+        </script>
 <?php
     }
 }

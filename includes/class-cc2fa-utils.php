@@ -7,20 +7,14 @@ defined('ABSPATH') || exit;
 class CC2FA_Utils
 {
 
-    public static function generate_verification_code()
+    public static function generate_verification_code($length = 6, $complexity = 'numeric')
     {
-        $length = get_option('cc_2fa_code_length', 6);
-        $complexity = get_option('cc_2fa_code_complexity', 'numeric');
-
-        $characters = $complexity === 'alphanumeric' ?
-            '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' :
-            '0123456789';
-
+        $characters = $complexity === 'alphanumeric' ? '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' : '0123456789';
+        $characters_length = strlen($characters);
         $code = '';
         for ($i = 0; $i < $length; $i++) {
-            $code .= $characters[wp_rand(0, strlen($characters) - 1)];
+            $code .= $characters[rand(0, $characters_length - 1)];
         }
-
         return $code;
     }
 
