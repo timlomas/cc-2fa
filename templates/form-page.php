@@ -1,29 +1,34 @@
 <?php
 // cc-2fa/templates/form-page.php
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 if (!is_user_logged_in()) {
     wp_redirect(wp_login_url());
     exit;
 }
 
-// Disable the admin toolbar on this page
 show_admin_bar(false);
 
 $verification_error = false;
+
+$user_id = get_current_user_id();
 
 if (isset($_POST['cc_2fa_code'])) {
     check_admin_referer('cc_2fa_form_nonce', 'cc_2fa_form_nonce_field');
 
     $cc_2fa_instance = \CaterhamComputing\CC2FA\CC2FA::instance();
     if ($cc_2fa_instance->validate_form_submission($_POST['cc_2fa_code'])) {
-        // Mark the test as passed for this session
-        set_transient('cc_2fa_passed_' . get_current_user_id(), true, 60 * 10); // Store for 10 minutes
+        set_transient('cc_2fa_passed_' . $user_id, true, 60 * 10);
         wp_redirect(admin_url());
         exit;
     } else {
         $verification_error = true;
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -116,6 +121,7 @@ if (isset($_POST['cc_2fa_code'])) {
         <?php endif; ?>
         <form method="post" action="">
             <?php wp_nonce_field('cc_2fa_form_nonce', 'cc_2fa_form_nonce_field'); ?>
+            <input type="hidden" id="cc_2fa_user_id" name="cc_2fa_user_id" value="<?php echo esc_attr($user_id); ?>"> <!-- Hidden field for user ID -->
             <p>
                 <label for="cc_2fa_code"><?php esc_html_e('Verification Code:', 'cc-2fa'); ?></label>
                 <input type="text" id="cc_2fa_code" name="cc_2fa_code" required autofocus>

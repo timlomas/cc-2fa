@@ -13,11 +13,12 @@ class CC2FA
     {
         if (self::$instance === null) {
             self::$instance = new self();
+            self::$instance->init();
         }
         return self::$instance;
     }
 
-    private function __construct()
+    public function init()
     {
         add_action('login_redirect', array($this, 'redirect_after_login'), 10, 3);
         add_action('wp_logout', array($this, 'clear_session'));
@@ -27,14 +28,21 @@ class CC2FA
 
     public function redirect_after_login($redirect_to, $request, $user)
     {
-        // Clear any previous session data related to this test
+        if (is_wp_error($user)) {
+            error_log('redirect_after_login: WP_Error encountered: ' . $user->get_error_message() . ' | Request: ' . print_r($request, true));
+            return $redirect_to;
+        }
+
+        if (!$user) {
+            error_log('redirect_after_login: Invalid user object encountered.');
+            return $redirect_to;
+        }
+
         delete_transient('cc_2fa_passed_' . $user->ID);
         delete_transient('cc_2fa_code_' . $user->ID);
 
-        // Generate and send the verification code
         $this->send_verification_code($user);
 
-        // Redirect to the custom form page outside of the dashboard
         return site_url('/cc-2fa-form');
     }
 
@@ -48,14 +56,12 @@ class CC2FA
 
     public function clear_session()
     {
-        // Clear the transients when the user logs out
         delete_transient('cc_2fa_passed_' . get_current_user_id());
         delete_transient('cc_2fa_code_' . get_current_user_id());
     }
 
     public function prevent_dashboard_access()
     {
-        // Redirect to the form page if the test hasn't been passed
         if (!get_transient('cc_2fa_passed_' . get_current_user_id()) && !current_user_can('manage_options')) {
             wp_redirect(site_url('/cc-2fa-form'));
             exit;
@@ -83,16 +89,30 @@ class CC2FA
 
     private function send_verification_code($user)
     {
+        if (is_wp_error($user)) {
+            error_log('send_verification_code: WP_Error encountered: ' . $user->get_error_message());
+            return;
+        }
+
+        if (empty($user->user_email)) {
+            error_log('send_verification_code: Invalid user object or missing email address.');
+            return;
+        }
+
         $code = $this->generate_verification_code();
 
-        // Store the code in a transient for later verification
-        set_transient('cc_2fa_code_' . $user->ID, $code, 60 * 10); // Store for 10 minutes
+        if (!set_transient('cc_2fa_code_' . $user->ID, $code, 60 * 10)) {
+            error_log('send_verification_code: Failed to set transient for user ID: ' . $user->ID);
+            return;
+        }
 
         $subject = __('Your Verification Code', 'cc-2fa');
         $message = sprintf(__('Your verification code is: %s', 'cc-2fa'), $code);
         $headers = array('Content-Type: text/html; charset=UTF-8');
 
-        wp_mail($user->user_email, $subject, $message, $headers);
+        if (!wp_mail($user->user_email, $subject, $message, $headers)) {
+            error_log('send_verification_code: Failed to send email to user ID: ' . $user->ID);
+        }
     }
 
     public function validate_form_submission($input_code)

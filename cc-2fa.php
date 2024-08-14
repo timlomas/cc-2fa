@@ -3,7 +3,7 @@
 /**
  * Plugin Name: CC 2FA
  * Description: A plugin that requires users to enter a verification code sent via email before accessing the WordPress dashboard.
- * Version: 1.0.2
+ * Version: 1.0.5
  * Author: Caterham Computing
  * Author URI: https://caterhamcomputing.co.uk/
  * Text Domain: cc-2fa
@@ -12,10 +12,9 @@
 
 defined('ABSPATH') || exit;
 
-require_once plugin_dir_path(__FILE__) . 'includes/class-cc-2fa.php';
-
 function cc_2fa_init()
 {
+    require_once plugin_dir_path(__FILE__) . 'includes/class-cc-2fa.php';
     \CaterhamComputing\CC2FA\CC2FA::instance();
 }
 add_action('plugins_loaded', 'cc_2fa_init');
