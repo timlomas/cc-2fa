@@ -4,7 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const submitButton = document.querySelector('input[type="submit"]');
   let timeLeft = parseInt(cc2fa_vars.time_left, 10); // Get remaining time in seconds
 
-  // Function to update the countdown timer
+  /**
+   * Function to update the countdown timer.
+   *
+   * Updates the countdown timer every second. If the time runs out,
+   * it shows a code expiration message, disables the submit button,
+   * and replaces the resend link with a "Send new code" link.
+   */
   function updateCountdown() {
     if (timeLeft <= 0) {
       countdownTimer.textContent = cc2fa_vars.code_expired_message; // Show expiration message
@@ -19,6 +25,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /**
+   * Function to replace the resend link with a "Send new code" link.
+   *
+   * If the "Send new code" link does not already exist, it creates one,
+   * hides the existing resend link, and appends the new link to the container.
+   */
   function replaceResendWithNewCode() {
     // Check if the "Send new code" link already exists
     if (document.getElementById("cc2fa-new-code")) {
@@ -41,6 +53,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  /**
+   * Function to send a new verification code via AJAX.
+   *
+   * Sends an AJAX request to generate and send a new verification code to the user.
+   * Resets the timer, re-enables the submit button, and restores the resend link.
+   */
   function sendNewCode(newCodeLink, resendLink) {
     jQuery.ajax({
       url: cc2fa_vars.ajaxurl, // Use the localized variable
@@ -66,7 +84,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  updateCountdown(); // Start the countdown
+  // Start the countdown
+  updateCountdown();
 
   if (resendContainer) {
     // Create the resend link element

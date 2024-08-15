@@ -2,11 +2,24 @@
 
 namespace CaterhamComputing\CC2FA;
 
-defined('ABSPATH') || exit;
+defined('ABSPATH') || exit; // Prevent direct access to the file.
 
+/**
+ * Class CC2FA_Auth
+ * 
+ * Handles authentication-related functionality for the CC 2FA plugin.
+ */
 class CC2FA_Auth
 {
 
+    /**
+     * Initializes the authentication hooks and handlers.
+     * 
+     * Sets up actions for login redirection, session clearing, dashboard access prevention,
+     * form submission handling, and AJAX code resending.
+     *
+     * @return void
+     */
     public static function init()
     {
         add_action('login_redirect', array(__CLASS__, 'redirect_after_login'), 10, 3);
@@ -21,6 +34,17 @@ class CC2FA_Auth
         add_action('wp_ajax_nopriv_cc2fa_resend_code', array(__CLASS__, 'resend_code'));
     }
 
+    /**
+     * Redirects the user after login to the 2FA verification form.
+     * 
+     * Clears any previous verification attempts, sends a new verification code,
+     * and redirects the user to the 2FA form.
+     *
+     * @param string $redirect_to The default redirect URL.
+     * @param string $request The requested redirect URL.
+     * @param WP_User $user The logged-in user object.
+     * @return string The URL to redirect to.
+     */
     public static function redirect_after_login($redirect_to, $request, $user)
     {
         if (is_wp_error($user) || !$user) {
@@ -33,6 +57,14 @@ class CC2FA_Auth
         return site_url('/cc-2fa-form');
     }
 
+    /**
+     * Prevents unauthorized users from accessing the WordPress dashboard.
+     * 
+     * Redirects users who haven't passed 2FA to the verification form,
+     * unless they have admin capabilities or are making AJAX requests.
+     *
+     * @return void
+     */
     public static function prevent_dashboard_access()
     {
         // Avoid redirecting AJAX requests
@@ -46,11 +78,26 @@ class CC2FA_Auth
         }
     }
 
+    /**
+     * Clears the session data for the current user upon logout.
+     * 
+     * This ensures that the 2FA process will be required again on the next login.
+     *
+     * @return void
+     */
     public static function clear_session()
     {
         self::clear_verification(get_current_user_id());
     }
 
+    /**
+     * Clears the verification data for the given user.
+     * 
+     * Removes the stored verification code and any transient data associated with the user.
+     *
+     * @param int $user_id The ID of the user.
+     * @return void
+     */
     private static function clear_verification($user_id)
     {
         delete_transient('cc_2fa_passed_' . $user_id);
@@ -59,6 +106,14 @@ class CC2FA_Auth
         delete_transient('cc_2fa_attempts_' . $user_id);
     }
 
+    /**
+     * Validates the 2FA code submitted by the user.
+     * 
+     * Compares the input code with the stored code and checks for expiration and attempt limits.
+     * 
+     * @param string $input_code The code entered by the user.
+     * @return bool True if the code is valid, false otherwise.
+     */
     public static function validate_form_submission($input_code)
     {
         $user_id = get_current_user_id();
@@ -101,6 +156,13 @@ class CC2FA_Auth
         return false;
     }
 
+    /**
+     * Handles the case where the verification code has expired.
+     * 
+     * Redirects the user to the login page with an expiration message and logs them out.
+     *
+     * @return void
+     */
     private static function handle_expired_code()
     {
         add_action('template_redirect', function () {
@@ -119,6 +181,13 @@ class CC2FA_Auth
         });
     }
 
+    /**
+     * Handles the case where the user entered an incorrect verification code.
+     * 
+     * Sets an error message and redirects the user back to the 2FA form.
+     *
+     * @return void
+     */
     private static function handle_incorrect_code()
     {
         set_transient('cc_2fa_error', __('Incorrect code. Please try again.', 'cc-2fa'), 30);
@@ -126,6 +195,14 @@ class CC2FA_Auth
         exit;
     }
 
+    /**
+     * Sends the 2FA verification code to the user's email address.
+     * 
+     * Generates a new verification code and emails it to the user.
+     *
+     * @param WP_User $user The user object.
+     * @return void
+     */
     public static function send_verification_code($user)
     {
         $expiration_time = get_option('cc_2fa_code_expiration', 120); // Get expiration time in seconds
@@ -139,6 +216,13 @@ class CC2FA_Auth
         CC2FA_Utils::send_verification_email($user->user_email, $code);
     }
 
+    /**
+     * Resends the verification code to the user via AJAX.
+     * 
+     * Generates a new code or resends the existing one, and emails it to the user.
+     *
+     * @return void
+     */
     public static function resend_code()
     {
         // Ensure the user is logged in
@@ -180,6 +264,14 @@ class CC2FA_Auth
         wp_die();
     }
 
+    /**
+     * Handles the form submission for the 2FA verification.
+     * 
+     * Validates the submitted verification code and either redirects to the admin dashboard
+     * or back to the 2FA form with an error message.
+     *
+     * @return void
+     */
     public static function handle_form_submission()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cc_2fa_code'])) {

@@ -2,13 +2,30 @@
 
 namespace CaterhamComputing\CC2FA;
 
-defined('ABSPATH') || exit;
+defined('ABSPATH') || exit; // Prevents direct access to the file.
 
+/**
+ * Main class for the CC 2FA plugin.
+ *
+ * This class handles the core functionality of the plugin, including initialization,
+ * activation, deactivation, and handling custom rewrite rules.
+ */
 class CC2FA
 {
-
+    /**
+     * Holds the single instance of the class.
+     *
+     * @var CC2FA|null
+     */
     private static $instance = null;
 
+    /**
+     * Returns the single instance of the class.
+     *
+     * If the instance doesn't exist yet, it is created and initialized.
+     *
+     * @return CC2FA The single instance of the class.
+     */
     public static function instance()
     {
         if (self::$instance === null) {
@@ -18,6 +35,13 @@ class CC2FA
         return self::$instance;
     }
 
+    /**
+     * Initializes the plugin's functionality.
+     *
+     * This method sets up authentication, settings, and custom rewrite rules.
+     *
+     * @return void
+     */
     private function init()
     {
         CC2FA_Auth::init();
@@ -26,17 +50,38 @@ class CC2FA
         add_action('init', array($this, 'rewrite_rules'));
     }
 
+    /**
+     * Executes actions needed when the plugin is activated.
+     *
+     * This includes setting up custom rewrite rules and flushing them.
+     *
+     * @return void
+     */
     public static function activate()
     {
-        self::rewrite_rules(); // Call the static method
-        flush_rewrite_rules();
+        self::rewrite_rules(); // Call the static method to add rewrite rules.
+        flush_rewrite_rules(); // Flushes the rewrite rules to make the new rules effective.
     }
 
+    /**
+     * Executes actions needed when the plugin is deactivated.
+     *
+     * This typically involves flushing the rewrite rules.
+     *
+     * @return void
+     */
     public static function deactivate()
     {
-        flush_rewrite_rules();
+        flush_rewrite_rules(); // Flushes the rewrite rules to remove custom rules.
     }
 
+    /**
+     * Adds custom rewrite rules for the plugin's custom pages.
+     *
+     * This method also sets up query variables and handles the display of the verification page.
+     *
+     * @return void
+     */
     public static function rewrite_rules()
     {
         add_rewrite_rule('cc-2fa-form/?$', 'index.php?cc_2fa_form=1', 'top');
@@ -52,6 +97,13 @@ class CC2FA
         });
     }
 
+    /**
+     * Loads the plugin's text domain for translations.
+     *
+     * This method makes the plugin ready for internationalization by loading the text domain.
+     *
+     * @return void
+     */
     public function load_textdomain()
     {
         load_plugin_textdomain('cc-2fa', false, basename(dirname(__FILE__)) . '/languages');

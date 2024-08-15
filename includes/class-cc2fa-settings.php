@@ -2,17 +2,36 @@
 
 namespace CaterhamComputing\CC2FA;
 
-defined('ABSPATH') || exit;
+defined('ABSPATH') || exit; // Prevent direct access to the file.
 
+/**
+ * Class CC2FA_Settings
+ * 
+ * Manages the settings and options for the CC 2FA plugin.
+ */
 class CC2FA_Settings
 {
 
+    /**
+     * Initializes the settings hooks and handlers.
+     * 
+     * Adds actions to register the settings page and settings options.
+     *
+     * @return void
+     */
     public static function init()
     {
         add_action('admin_menu', array(__CLASS__, 'add_settings_page'));
         add_action('admin_init', array(__CLASS__, 'register_settings'));
     }
 
+    /**
+     * Adds the settings page to the WordPress admin menu.
+     * 
+     * Creates a new options page under the "Settings" menu for the plugin's settings.
+     *
+     * @return void
+     */
     public static function add_settings_page()
     {
         add_options_page(
@@ -24,6 +43,13 @@ class CC2FA_Settings
         );
     }
 
+    /**
+     * Registers the plugin settings with WordPress.
+     * 
+     * Registers the settings, sections, and fields used in the plugin's settings page.
+     *
+     * @return void
+     */
     public static function register_settings()
     {
         // Register settings
@@ -83,6 +109,13 @@ class CC2FA_Settings
         );
     }
 
+    /**
+     * Renders the settings page content.
+     * 
+     * Outputs the HTML for the settings page in the WordPress admin.
+     *
+     * @return void
+     */
     public static function render_settings_page()
     {
 ?>
@@ -99,6 +132,13 @@ class CC2FA_Settings
     <?php
     }
 
+    /**
+     * Renders the verification code length slider.
+     * 
+     * Outputs the HTML for the code length setting slider.
+     *
+     * @return void
+     */
     public static function render_code_length_slider()
     {
         $code_length = get_option('cc_2fa_code_length', 6);
@@ -113,6 +153,13 @@ class CC2FA_Settings
     <?php
     }
 
+    /**
+     * Renders the verification code complexity field.
+     * 
+     * Outputs the HTML for the code complexity setting field.
+     *
+     * @return void
+     */
     public static function render_code_complexity_field()
     {
         $code_complexity = get_option('cc_2fa_code_complexity', 'numeric');
@@ -128,6 +175,13 @@ class CC2FA_Settings
     <?php
     }
 
+    /**
+     * Renders the expiration time slider.
+     * 
+     * Outputs the HTML for the expiration time setting slider.
+     *
+     * @return void
+     */
     public static function render_expiration_time_slider()
     {
         $expiration_time = get_option('cc_2fa_code_expiration', 120);
@@ -142,6 +196,13 @@ class CC2FA_Settings
     <?php
     }
 
+    /**
+     * Renders the limit attempts checkbox.
+     * 
+     * Outputs the HTML for the setting to limit verification attempts.
+     *
+     * @return void
+     */
     public static function render_limit_attempts_checkbox()
     {
         $limit_attempts = get_option('cc_2fa_limit_attempts', 0);
@@ -166,6 +227,13 @@ class CC2FA_Settings
     <?php
     }
 
+    /**
+     * Renders the attempts allowed slider.
+     * 
+     * Outputs the HTML for the setting that defines the number of allowed verification attempts.
+     *
+     * @return void
+     */
     public static function render_attempts_allowed_slider()
     {
         $attempts_allowed = get_option('cc_2fa_attempts_allowed', 4);
