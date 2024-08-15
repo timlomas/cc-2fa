@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", function () {
    * hides the existing resend link, and appends the new link to the container.
    */
   function replaceResendWithNewCode() {
-    // Check if the "Send new code" link already exists
     if (document.getElementById("cc2fa-new-code")) {
       return; // Exit if the link already exists to prevent duplicates
     }
@@ -88,16 +87,13 @@ document.addEventListener("DOMContentLoaded", function () {
   updateCountdown();
 
   if (resendContainer) {
-    // Create the resend link element
     const resendLink = document.createElement("a");
     resendLink.href = "#";
     resendLink.id = "cc2fa-resend-code";
     resendLink.textContent = cc2fa_vars.resend_code_text;
 
-    // Append the resend link to the container
     resendContainer.appendChild(resendLink);
 
-    // Add the click event listener to the resend link
     resendLink.addEventListener("click", function (event) {
       event.preventDefault();
 

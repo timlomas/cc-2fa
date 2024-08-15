@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name: CC 2FA
- * Description: A plugin that requires users to enter a verification code sent via email before accessing the WordPress dashboard.
- * Version: 1.0.5
+ * Description: A plugin that requires users to enter a verification code sent via email or other methods before accessing the WordPress dashboard.
+ * Version: 1.1.0
  * Author: Caterham Computing
  * Author URI: https://caterhamcomputing.co.uk/
  * Text Domain: cc-2fa

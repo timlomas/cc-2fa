@@ -6,7 +6,7 @@ defined('ABSPATH') || exit; // Prevent direct access to the file.
 
 /**
  * Class CC2FA_Settings
- * 
+ *
  * Manages the settings and options for the CC 2FA plugin.
  */
 class CC2FA_Settings
@@ -14,7 +14,7 @@ class CC2FA_Settings
 
     /**
      * Initializes the settings hooks and handlers.
-     * 
+     *
      * Adds actions to register the settings page and settings options.
      *
      * @return void
@@ -27,7 +27,7 @@ class CC2FA_Settings
 
     /**
      * Adds the settings page to the WordPress admin menu.
-     * 
+     *
      * Creates a new options page under the "Settings" menu for the plugin's settings.
      *
      * @return void
@@ -45,7 +45,7 @@ class CC2FA_Settings
 
     /**
      * Registers the plugin settings with WordPress.
-     * 
+     *
      * Registers the settings, sections, and fields used in the plugin's settings page.
      *
      * @return void
@@ -58,6 +58,7 @@ class CC2FA_Settings
         register_setting('cc_2fa_settings', 'cc_2fa_code_expiration');
         register_setting('cc_2fa_settings', 'cc_2fa_limit_attempts');
         register_setting('cc_2fa_settings', 'cc_2fa_attempts_allowed');
+        register_setting('cc_2fa_settings', 'cc_2fa_verification_methods'); // Updated to store as an array
 
         // Add settings section
         add_settings_section(
@@ -107,11 +108,19 @@ class CC2FA_Settings
             'cc-2fa-settings',
             'cc_2fa_main_settings'
         );
+
+        add_settings_field(
+            'cc_2fa_verification_methods',
+            __('Verification Methods', 'cc-2fa'),
+            array(__CLASS__, 'render_verification_method_field'),
+            'cc-2fa-settings',
+            'cc_2fa_main_settings'
+        );
     }
 
     /**
      * Renders the settings page content.
-     * 
+     *
      * Outputs the HTML for the settings page in the WordPress admin.
      *
      * @return void
@@ -134,7 +143,7 @@ class CC2FA_Settings
 
     /**
      * Renders the verification code length slider.
-     * 
+     *
      * Outputs the HTML for the code length setting slider.
      *
      * @return void
@@ -155,7 +164,7 @@ class CC2FA_Settings
 
     /**
      * Renders the verification code complexity field.
-     * 
+     *
      * Outputs the HTML for the code complexity setting field.
      *
      * @return void
@@ -177,7 +186,7 @@ class CC2FA_Settings
 
     /**
      * Renders the expiration time slider.
-     * 
+     *
      * Outputs the HTML for the expiration time setting slider.
      *
      * @return void
@@ -198,7 +207,7 @@ class CC2FA_Settings
 
     /**
      * Renders the limit attempts checkbox.
-     * 
+     *
      * Outputs the HTML for the setting to limit verification attempts.
      *
      * @return void
@@ -229,7 +238,7 @@ class CC2FA_Settings
 
     /**
      * Renders the attempts allowed slider.
-     * 
+     *
      * Outputs the HTML for the setting that defines the number of allowed verification attempts.
      *
      * @return void
@@ -248,6 +257,28 @@ class CC2FA_Settings
                 });
             </script>
         </div>
+    <?php
+    }
+
+    /**
+     * Renders the verification method selection field.
+     *
+     * Outputs the HTML for selecting the verification methods (Email, SMS, etc.).
+     *
+     * @return void
+     */
+    public static function render_verification_method_field()
+    {
+        $selected_methods = get_option('cc_2fa_verification_methods', ['email']);
+    ?>
+        <label>
+            <input type="checkbox" name="cc_2fa_verification_methods[]" value="email" <?php checked(in_array('email', $selected_methods)); ?>>
+            <?php esc_html_e('Email', 'cc-2fa'); ?>
+        </label><br>
+        <label>
+            <input type="checkbox" name="cc_2fa_verification_methods[]" value="sms" <?php checked(in_array('sms', $selected_methods)); ?>>
+            <?php esc_html_e('SMS (Placeholder)', 'cc-2fa'); ?>
+        </label>
 <?php
     }
 }
