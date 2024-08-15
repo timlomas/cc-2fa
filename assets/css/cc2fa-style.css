@@ -1,68 +1,76 @@
+/* General body styling */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f7f7;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+    font-family: Arial, sans-serif; /* Sets the font for the body */
+    background-color: #f7f7f7; /* Light grey background color */
+    display: flex; /* Flexbox layout for centering content */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    height: 100vh; /* Full viewport height */
+    margin: 0; /* Remove default margin */
 }
 
+/* Container for the form or content */
 .wrap {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-    box-sizing: border-box;
+    background-color: #ffffff; /* White background color */
+    padding: 2rem; /* Padding inside the container */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    max-width: 400px; /* Maximum width of the container */
+    width: 100%; /* Full width within the max-width */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
+/* Styling for the main heading */
 h1 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    text-align: center;
-    color: #333;
+    font-size: 1.5rem; /* Font size for the heading */
+    margin-bottom: 1rem; /* Space below the heading */
+    text-align: center; /* Center the text */
+    color: #333; /* Dark grey text color */
 }
 
+/* Error message styling */
 .error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid #f5c6cb;
-    border-radius: 5px;
-    text-align: center;
+    background-color: #f8d7da; /* Light red background for error message */
+    color: #721c24; /* Dark red text color */
+    padding: 1rem; /* Padding inside the error box */
+    margin-bottom: 1rem; /* Space below the error box */
+    border: 1px solid #f5c6cb; /* Border with a slightly darker red */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center; /* Center the error text */
 }
 
+/* Label styling for form inputs */
 label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: #333;
+    display: block; /* Block display to take full width */
+    margin-bottom: 0.5rem; /* Space below the label */
+    font-weight: bold; /* Bold text for emphasis */
+    color: #333; /* Dark grey text color */
 }
 
+/* Styling for text inputs */
 input[type="text"] {
-    width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
+    width: 100%; /* Full width input */
+    padding: 0.75rem; /* Padding inside the input */
+    margin-bottom: 1rem; /* Space below the input */
+    border: 1px solid #ccc; /* Light grey border */
+    border-radius: 4px; /* Slightly rounded corners */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
+/* Styling for the submit button */
 input[type="submit"] {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: #0073aa;
-    border: none;
-    border-radius: 4px;
-    color: #ffffff;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    width: 100%; /* Full width button */
+    padding: 0.75rem; /* Padding inside the button */
+    background-color: #0073aa; /* WordPress blue background */
+    border: none; /* Remove default border */
+    border-radius: 4px; /* Slightly rounded corners */
+    color: #ffffff; /* White text color */
+    font-size: 1rem; /* Standard font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
 }
 
+/* Hover effect for the submit button */
 input[type="submit"]:hover {
-    background-color: #005d8a;
+    background-color: #005d8a; /* Darker blue on hover */
 }
